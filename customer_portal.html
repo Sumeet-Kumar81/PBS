@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Pakistan Bus Services</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <style>
+        :root{font-family:'Segoe UI',Roboto,Arial,sans-serif;--primary:#0066ff;--secondary:#ff6b35;--accent:#ffd93d;--dark:#1a1a2e;--light:#f5f7fa}
+        body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;color:#333;padding:20px;min-height:100vh;background-attachment:fixed;position:relative}
+        body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background-image:url('images/logo.png');background-size:contain;background-repeat:no-repeat;background-position:center;opacity:0.12;pointer-events:none;z-index:0}
+        .container{position:relative;z-index:1}
+        header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;background:rgba(255,255,255,0.95);padding:18px 24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.1);backdrop-filter:blur(10px);position:relative;z-index:2}
+        .logo-section{display:flex;align-items:center;gap:12px}
+        .logo{width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 12px rgba(102,126,234,0.3)}
+        header h1{margin:0;font-size:28px;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        header nav a{color:var(--primary);text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s ease}
+        header nav a:hover{background:rgba(102,126,234,0.1)}
+        .container{max-width:1100px;margin:0 auto}
+        .search-box{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;background:rgba(255,255,255,0.95);padding:24px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.1);backdrop-filter:blur(10px)}
+        @media(max-width:900px){.search-box{flex-wrap:wrap}}
+        @media(max-width:600px){.search-box{flex-wrap:wrap}}
+        #searchForm button{margin:0}
+        .search-box > .cities-row { flex:1; min-width:300px; display:flex; align-items:center; gap:12px; }
+        #searchForm > input[type="date"] { flex:1; min-width:140px; padding:12px 14px; }
+        #searchForm > button[type="submit"] { flex:0 0 auto; width:120px; align-self:stretch; }
+        button{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-weight:600;transition:all .3s ease;box-shadow:0 4px 15px rgba(102,126,234,0.4)}
+        button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(102,126,234,0.6)}
+        button:active{transform:translateY(0)}
+        /* Search button special styling - Orange CTA */
+        #searchForm > button[type="submit"] { background:linear-gradient(135deg,#ff6b35,#ff8c42); box-shadow:0 4px 15px rgba(255,107,53,0.4); padding:12px 24px; white-space:nowrap; }
+        #searchForm > button[type="submit"]:hover { box-shadow:0 6px 20px rgba(255,107,53,0.6); }
+        .service-card{display:flex;justify-content:space-between;gap:16px;padding:18px;background:#fff;border-radius:14px;margin-bottom:16px;box-shadow:0 8px 24px rgba(102,126,234,0.15);transition:all .3s ease;border-left:5px solid var(--secondary)}
+        .service-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(102,126,234,0.25)}
+        .card-left{display:flex;gap:16px;flex:1;align-items:center}
+        .thumb{width:140px;height:100px;object-fit:cover;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(5px); }
+        .modal .inner { width:90%; max-width:900px; background:#fff; border-radius:16px; padding:28px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideUp .3s ease; }
+        .modal .close { position:absolute; right:16px; top:16px; background:#f0f0f0; border-radius:8px; padding:8px 10px; cursor:pointer; font-weight:bold; color:#666; transition:all .2s ease; border:none; }
+        .modal .close:hover { background:#ff6b35; color:#fff; }
+        .fade-in { animation:fadeIn .3s ease both; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+        @keyframes slideUp { from { opacity:0; transform:translateY(30px);} to{opacity:1; transform:none;} }
+
+        /* Skeleton loader */
+        .skeleton-card { background: linear-gradient(90deg,#e0e0e0,#f0f0f0,#e0e0e0); border-radius:14px; padding:18px; margin-bottom:16px; display:flex; gap:16px; align-items:center; animation:pulse 1.5s ease-in-out infinite; }
+        .skeleton-thumb { width:140px; height:100px; background:linear-gradient(90deg,#d0d0d0,#e8e8e8); border-radius:10px; }
+        .skeleton-lines { flex:1; }
+        .skeleton-line { height:14px; background:#e0e0e0; margin-bottom:10px; border-radius:6px; }
+        @keyframes pulse { 0%, 100% { opacity:0.6; } 50% { opacity:1; } }
+
+        /* Autocomplete dropdown */
+        .ac-wrapper { position:relative; width:100%; display:flex; flex-direction:column; flex:1; }
+        .search-box > .cities-row { display:flex; align-items:center; gap:12px; flex:1; min-width:300px; width:100%; }
+        .search-box > .cities-row .ac-wrapper { flex:1; }
+        .ac-input { width:100%; padding:12px 14px; border-radius:10px; border:2px solid #e0e0e0; font-size:14px; transition:all .3s ease; background:#fff; box-sizing:border-box; text-transform:capitalize; }
+        .ac-input:focus { outline:none; border-color:#0066ff; background:#f9fbff; box-shadow:0 0 0 4px rgba(0,102,255,0.1); }
+        .ac-list { position:absolute; left:0; right:0; top:100%; background:#fff; border:2px solid #0066ff; max-height:200px; overflow-y:auto; z-index:1000; border-radius:10px; box-shadow:0 12px 32px rgba(102,126,234,0.3); display:none; margin-top:6px; }
+        .ac-item { padding:12px 14px; cursor:pointer; transition:all .2s ease; border-bottom:1px solid #f0f0f0; }
+        .ac-item:last-child { border-bottom:none; }
+        .ac-item:hover { background:linear-gradient(135deg,rgba(102,126,234,0.1),rgba(118,75,162,0.1)); color:#0066ff; }
+
+        /* Sticky booking summary */
+        .summary-box.sticky { position: sticky; top: 12px; z-index: 20; }
+
+        /* Seat Selection Section (Hidden by default) */
+        #seatSelectionSection { display: none; background:rgba(255,255,255,0.98); padding: 32px; border-radius: 16px; margin-top: 20px; text-align: center; box-shadow:0 10px 40px rgba(0,0,0,0.1); animation:slideUp .3s ease; }
+        .bus-layout { display: inline-block; background: linear-gradient(135deg,#f5f7fa,#e8ecf1); padding: 28px; border: 2px solid #0066ff; border-radius: 14px; margin-top: 20px; }
+        
+        .seat-grid { display: grid; grid-template-columns: repeat(2, 56px) 24px repeat(2, 56px); gap: 12px; justify-content: center; margin-top: 20px; }
+        .seat { width: 56px; height: 56px; background: linear-gradient(135deg,#e8f0ff,#f5f8ff); border: 2px solid #0066ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; color: #0066ff; box-shadow: 0 4px 12px rgba(0,102,255,0.15); transition: all .2s ease; }
+        .seat:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(0,102,255,0.3); }
+        .seat.selected { animation: seatPulse .4s ease both; }
+        @keyframes seatPulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1.08); } }
+        .seat.selected { background: linear-gradient(135deg,#ffd93d,#ffb700); color: #333; border-color: #ff9800; box-shadow: 0 6px 20px rgba(255,179,0,0.4); }
+        .seat.booked { background: linear-gradient(135deg,#ff6b5b,#e63946); color: white; cursor: not-allowed; border-color: #d62828; box-shadow: 0 4px 12px rgba(230,57,70,0.3); }
+        .seat.empty { visibility: hidden; }
+        .aisle { visibility: hidden; } /* Empty space for walking path */
+
+        .summary-box { margin-top: 20px; padding: 20px; background: linear-gradient(135deg,rgba(102,126,234,0.05),rgba(118,75,162,0.05)); border: 2px solid #0066ff; border-radius:12px; box-shadow:0 4px 12px rgba(0,102,255,0.1); }
+        .summary-box p { margin:8px 0; font-weight:600; color:#333; }
+        .summary-box span { color:#ff6b35; font-weight:700; }
+        .hidden { display: none; }
+        .legend { display:flex; gap:12px; justify-content:center; margin-top:10px; }
+        .legend .item { display:flex; gap:6px; align-items:center; font-size:0.95rem; }
+        .legend .box { width:18px; height:18px; border-radius:4px; border:1px solid #ccc; }
+        #searchSection h2 { color:#1a1a2e; font-size:24px; margin-bottom:20px; }
+        /* Results Section Container */
+        #resultsSection { background:rgba(255,255,255,0.95); padding:24px; border-radius:16px; margin-top:20px; box-shadow:0 10px 40px rgba(0,0,0,0.1); display:none; }
+        #resultsSection.active { display:block; }
+        #resultsSection h3 { color:#1a1a2e; margin-top:0; }
+        #seatSelectionSection h2 { color:#1a1a2e; font-size:24px; margin-bottom:8px; }
+        #seatSelectionSection p { color:#666; font-size:16px; margin-bottom:20px; }
+        .fare-price { color: #ff6b35; font-weight: 700; font-size:18px; }
+        /* Auth Styles */
+        .auth-screen { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:10000; }
+        .auth-container { background:white; padding:40px; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.3); width:90%; max-width:420px; position:relative; }
+        .auth-container .close { position:absolute; right:16px; top:16px; background:#f0f0f0; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold; color:#666; transition:all .2s ease; border:none; font-size:18px; line-height:1; }
+        .auth-container .close:hover { background:#dc3545; color:white; transform:scale(1.1); }
+        .auth-tabs { display:flex; gap:0; margin-bottom:20px; border-bottom:2px solid #e0e0e0; }
+        .auth-tab { flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:600; color:#999; border-bottom:3px solid transparent; transition:all .3s ease; }
+        .auth-tab.active { color:#0066ff; border-bottom-color:#0066ff; }
+        .auth-form { display:none; }
+        .auth-form.active { display:block; }
+        .auth-form input { width:100%; padding:12px; margin:10px 0; border:2px solid #e0e0e0; border-radius:10px; font-size:14px; box-sizing:border-box; }
+        .auth-form input:focus { outline:none; border-color:#0066ff; background:#f9fbff; }
+        .auth-form button { width:100%; padding:12px; margin-top:16px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; }
+        .auth-form button:hover { box-shadow:0 6px 20px rgba(102,126,234,0.4); }
+        .auth-message { margin-top:10px; font-size:14px; color:#666; text-align:center; }
+        /* User Header */
+        .user-menu { display:flex; align-items:center; gap:12px; }
+        .user-btn { padding:8px 16px; background:#ff6b35; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; transition:all .3s ease; }
+        .user-btn:hover { background:#e55a24; transform:translateY(-2px); box-shadow:0 4px 12px rgba(255,107,53,0.4); }
+        .user-info { color:#333; font-size:14px; font-weight:600; text-transform:capitalize; }
+        /* Swap Button - Perfect Circle */
+        .swap-btn { width:40px; height:40px; min-width:40px; min-height:40px; flex-shrink:0; border-radius:50%; border:1px solid #ccc; background-color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; margin:0 6px; transition:transform 0.2s, background-color 0.2s; font-size:18px; color:#333; padding:0; }
+        .swap-btn:hover { transform:rotate(180deg); background-color:#f0f0f0; }
+        /* Popular Routes */
+        .popular-section { background:rgba(255,255,255,0.95); padding:40px 24px; border-radius:16px; margin-top:40px; box-shadow:0 10px 40px rgba(0,0,0,0.1); }
+        .popular-section h2 { color:#1a1a2e; font-size:24px; text-align:center; margin-bottom:30px; }
+        .routes-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+        .route-card { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:20px; border-radius:12px; text-align:center; cursor:pointer; transition:all .3s ease; box-shadow:0 4px 15px rgba(102,126,234,0.3); }
+        .route-card:hover { transform:translateY(-6px); box-shadow:0 10px 30px rgba(102,126,234,0.5); }
+        .route-card .route-name { font-weight:700; font-size:16px; margin-bottom:8px; }
+        .route-card .route-price { font-size:12px; opacity:0.9; }
+        /* Why Choose Us */
+        .features-section { background:rgba(255,255,255,0.95); padding:40px 24px; border-radius:16px; margin-top:20px; box-shadow:0 10px 40px rgba(0,0,0,0.1); }
+        .features-section h2 { color:#1a1a2e; font-size:24px; text-align:center; margin-bottom:30px; }
+        .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:20px; }
+        .feature-card { text-align:center; }
+        .feature-icon { font-size:40px; margin-bottom:12px; }
+        .feature-title { font-weight:700; color:#1a1a2e; margin-bottom:6px; }
+        .feature-desc { font-size:12px; color:#666; }
+        /* Footer */
+        footer { background:#1a1a2e; color:white; padding:40px 24px; text-align:center; margin-top:40px; }
+        footer .footer-content { max-width:1100px; margin:0 auto; }
+        footer .footer-section { display:flex; gap:40px; justify-content:center; flex-wrap:wrap; margin-bottom:20px; }
+        footer .footer-section a { color:#667eea; text-decoration:none; font-size:14px; transition:all .3s ease; }
+        footer .footer-section a:hover { color:#ff6b35; text-decoration:underline; }
+        footer .social-icons { margin-top:20px; display:flex; gap:16px; justify-content:center; }
+        footer .social-icon { width:36px; height:36px; background:#667eea; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .3s ease; font-size:18px; }
+        footer .social-icon:hover { background:#ff6b35; transform:translateY(-3px); }
+        footer .footer-bottom { border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; margin-top:20px; font-size:12px; color:#999; }
+        /* Admin link hidden by default */
+        .admin-link-hidden { display:none; }
+        /* History Section */
+        #historySection { display:none; }
+        .history-card { background:#f8f9fa; padding:16px; border-radius:10px; margin-bottom:12px; border-left:4px solid #0066ff; }
+        .history-card h4 { margin:0 0 8px 0; color:#0066ff; }
+        .history-card p { margin:4px 0; font-size:14px; color:#555; }
+        .history-card .status { display:inline-block; padding:4px 12px; border-radius:6px; font-size:12px; font-weight:600; }
+        .status.confirmed { background:#28a745; color:white; }
+        .status.pending { background:#ffc107; color:#333; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth Modal (Login/Register) -->
+    <div id="authModal" class="auth-screen" style="display:none;">
+        <div class="auth-container">
+            <div class="close" onclick="hideAuthModal()" title="Close">✕</div>
+            <h2 style="margin-top:0; text-align:center;">Pakistan Bus Services</h2>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">Sign Up</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                <input type="email" id="loginEmail" placeholder="Email Address" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+                <div class="auth-message" id="loginMessage"></div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+                <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="email" id="regEmail" placeholder="Email Address" required>
+                <input type="password" id="regPassword" placeholder="Password (min 6 chars)" required>
+                <input type="tel" id="regPhone" placeholder="Phone Number" required>
+                <button type="submit">Create Account</button>
+                <div class="auth-message" id="regMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo-section">
+            <div class="logo"><img src="images/logo.png" alt="Pakistan Bus Logo" style="width:100%; height:100%; object-fit:contain;"></div>
+            <h1>Pakistan Bus Services</h1>
+        </div>
+        <nav style="display:flex; gap:16px; align-items:center;">
+            <div class="user-menu" id="userMenu" style="display:none;">
+                <div class="user-info">
+                    👤 <span id="userName"></span>
+                </div>
+                <button class="user-btn" onclick="goToHistory()">📋 History</button>
+                <button class="user-btn" style="background:#dc3545;" onclick="handleLogout()">Logout</button>
+            </div>
+            <button class="user-btn" id="loginBtn" onclick="showAuthModal()">Login</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <div id="searchSection">
+            <h2 style="text-align:center;">Find Your Bus</h2>
+            <form id="searchForm" class="search-box">
+                <div class="cities-row">
+                    <div class="ac-wrapper">
+                        <input name="from" id="fromInput" class="ac-input" placeholder="From City" autocomplete="off" required>
+                        <div id="fromAc" class="ac-list"></div>
+                    </div>
+                    <button type="button" class="swap-btn" onclick="swapCities()" title="Swap cities">⇄</button>
+                    <div class="ac-wrapper">
+                        <input name="to" id="toInput" class="ac-input" placeholder="To City" autocomplete="off" required>
+                        <div id="toAc" class="ac-list"></div>
+                    </div>
+                </div>
+                <input type="date" id="dateInput" required style="padding:12px 14px;border-radius:10px;border:2px solid #e0e0e0;">
+                <button type="submit" style="display:flex; align-items:center; justify-content:center; gap:8px;">🔍 Search</button>
+            </form>
+            <div id="cityPreview" style="min-width:220px; background:white; padding:10px; border-radius:8px; display:none; box-shadow:0 6px 14px rgba(0,0,0,0.04); margin-top:12px;">
+                <img id="cityPreviewImg" src="" alt="" style="width:100%; height:100px; object-fit:cover; border-radius:6px; display:block;">
+                <div id="cityPreviewText" style="font-size:0.95rem; margin-top:6px;"></div>
+            </div>
+
+            <div id="resultsSection"></div>
+        </div>
+
+        <div id="historySection">
+            <button onclick="goToSearch()" style="background:#6c757d; margin-bottom:16px;">← Back to Search</button>
+            <h2>Your Booking History</h2>
+            <div id="historyList" style="background:#f8f9fa; padding:16px; border-radius:10px;">
+                <p style="text-align:center; color:#999;">No bookings yet</p>
+            </div>
+        </div>
+
+        <div id="seatSelectionSection">
+            <button onclick="goBack()" style="float:left; background:#6c757d;">&larr; Back</button>
+            <h2>Select Seats</h2>
+            <p id="routeInfoDisplay"></p>
+            
+            <div class="bus-layout">
+                <div style="margin-bottom:10px; font-weight:bold;">Driver Side</div>
+                <div id="seatGrid" class="seat-grid"></div>
+            </div>
+
+            <div class="summary-box sticky">
+                <p>Selected: <span id="selectedSeats">None</span></p>
+                <p>Total Price: PKR <span id="totalPrice">0</span></p>
+                <button id="checkoutBtn" disabled>Proceed to Payment</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    /* --- CUSTOMER ACCOUNT & BOOKING SYSTEM --- */
+    
+    // Initialize cities immediately
+    (function initializeCities() {
+        const defaultCities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+        const existing = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+        if(existing.length === 0) {
+            defaultCities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+            localStorage.setItem('pakBusCities', JSON.stringify(defaultCities));
+        }
+    })();
+    
+    // Auth Tab Switching
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        document.querySelector(`.auth-tab:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+        document.getElementById(tab === 'login' ? 'loginForm' : 'registerForm').classList.add('active');
+    }
+
+    function showAuthModal() {
+        document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function hideAuthModal() {
+        document.getElementById('authModal').style.display = 'none';
+    }
+
+    // Login Handler
+    function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        if(!email || !password) return alert('Fill in all fields');
+
+        const users = JSON.parse(localStorage.getItem('pakBusUsers')) || [];
+        const user = users.find(u => u.email === email && u.password === password);
+
+        if(!user) {
+            document.getElementById('loginMessage').innerText = 'Invalid email or password';
+            return;
+        }
+
+        // Save logged-in user
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        hideAuthModal();
+        updateUserUI();
+        document.getElementById('searchForm').reset();
+    }
+
+    // Register Handler
+    function handleRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const phone = document.getElementById('regPhone').value.trim();
+
+        if(!name || !email || !password || !phone) return alert('Fill in all fields');
+        if(password.length < 6) return alert('Password must be at least 6 characters');
+
+        let users = JSON.parse(localStorage.getItem('pakBusUsers')) || [];
+        if(users.find(u => u.email === email)) {
+            document.getElementById('regMessage').innerText = 'Email already registered';
+            return;
+        }
+
+        const newUser = { 
+            id: Date.now(), 
+            name, 
+            email, 
+            password, 
+            phone,
+            createdAt: new Date().toISOString()
+        };
+        users.push(newUser);
+        localStorage.setItem('pakBusUsers', JSON.stringify(users));
+        
+        // Auto login
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+        hideAuthModal();
+        updateUserUI();
+        document.getElementById('searchForm').reset();
+    }
+
+    function handleLogout() {
+        if(confirm('Logout from your account?')) {
+            localStorage.removeItem('currentUser');
+            updateUserUI();
+            goToSearch();
+        }
+    }
+
+    function updateUserUI() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const userMenu = document.getElementById('userMenu');
+        const loginBtn = document.getElementById('loginBtn');
+
+        if(currentUser) {
+            userMenu.style.display = 'flex';
+            loginBtn.style.display = 'none';
+            document.getElementById('userName').innerText = currentUser.name.split(' ')[0];
+        } else {
+            userMenu.style.display = 'none';
+            loginBtn.style.display = 'block';
+        }
+    }
+
+    function goToHistory() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if(!currentUser) return showAuthModal();
+
+        document.getElementById('searchSection').style.display = 'none';
+        document.getElementById('seatSelectionSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'block';
+        loadUserHistory();
+    }
+
+    function goToSearch() {
+        document.getElementById('searchSection').style.display = 'block';
+        document.getElementById('seatSelectionSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'none';
+    }
+
+    function loadUserHistory() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if(!currentUser) return;
+
+        const allBookings = JSON.parse(localStorage.getItem('pakBusBookings')) || [];
+        const userBookings = allBookings.filter(b => b.user_id === currentUser.id);
+        const historyList = document.getElementById('historyList');
+
+        if(userBookings.length === 0) {
+            historyList.innerHTML = '<p style="text-align:center; color:#999;">No bookings yet. <a href="javascript:goToSearch()" style="color:#0066ff; text-decoration:none;">Search buses</a></p>';
+            return;
+        }
+
+        const services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+        historyList.innerHTML = '';
+
+        userBookings.forEach(booking => {
+            const service = services.find(s => String(s.id) === String(booking.service_id)) || {};
+            const bookingDate = new Date(booking.booking_date).toLocaleDateString('en-PK');
+            
+            historyList.innerHTML += `
+                <div class="history-card">
+                    <h4>${service.operator || 'Bus Service'} - ${service.from || '?'} → ${service.to || '?'}</h4>
+                    <p><strong>Seats:</strong> ${booking.seats.join(', ')}</p>
+                    <p><strong>Total Amount:</strong> PKR ${booking.total_amount}</p>
+                    <p><strong>Booking Date:</strong> ${bookingDate}</p>
+                    <span class="status confirmed">✓ Confirmed</span>
+                </div>
+            `;
+        });
+    }
+
+    /* --- EXISTING CUSTOMER JAVASCRIPT: enhanced UI, previews, persistent bookings --- */
+    // 1. Load Data (Combines Dummy Data + Your New Admin Data)
+    function getAllServices() {
+        const defaultServices = [
+            { id: 101, operator: 'Faisal Movers', from: 'Lahore', to: 'Karachi', type: 'Executive', dep: '10:00', arr: '16:00', price: 3500 },
+            { id: 102, operator: 'Daewoo Express', from: 'Lahore', to: 'Islamabad', type: 'Luxury', dep: '20:00', arr: '06:00', price: 4200 }
+        ];
+        const storedServices = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+        return [...defaultServices, ...storedServices];
+    }
+
+    let currentPrice = 0;
+    let selectedSeats = [];
+    let currentServiceId = null;
+
+    // Global cities array used by autocomplete
+    let citiesList = [];
+
+    function populateCitySelects() {
+        try {
+            // Initialize cities array with defaults
+            let cities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+            
+            // Sort alphabetically
+            cities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+            
+            // Store in localStorage
+            localStorage.setItem('pakBusCities', JSON.stringify(cities));
+            citiesList = cities;
+
+            // Populate autocomplete lists
+            const fromAc = document.querySelector('#fromAc');
+            const toAc = document.querySelector('#toAc');
+            
+            if(fromAc && toAc) {
+                fromAc.innerHTML = '';
+                toAc.innerHTML = '';
+                cities.forEach(c => {
+                    const item = `<div class="ac-item">${c}</div>`;
+                    fromAc.innerHTML += item;
+                    toAc.innerHTML += item;
+                });
+            }
+        } catch(err) {
+            console.error('Error populating cities:', err);
+        }
+    }
+
+    // 2. Handle Search
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get User Input
+        const searchFrom = (document.getElementById('fromInput').value || '').trim();
+        const searchTo = (document.getElementById('toInput').value || '').trim();
+
+        const resultsDiv = document.getElementById('resultsSection');
+        resultsDiv.innerHTML = '<h3>Available Services:</h3>';
+        resultsDiv.classList.add('fade-in', 'active');
+        setTimeout(()=> resultsDiv.classList.remove('fade-in'), 350);
+        
+        // Get All Data
+        const allServices = getAllServices();
+
+        // FILTER: Find matches
+        const foundServices = allServices.filter(service => 
+            service.from === searchFrom && service.to === searchTo
+        );
+
+        if (foundServices.length === 0) {
+            resultsDiv.innerHTML += `<p style="color:red;">No buses found from ${searchFrom} to ${searchTo}. Try adding one in the Admin Portal!</p>`;
+            return;
+        }
+
+        // Generate Service Cards
+        foundServices.forEach(service => {
+            const imgUrl = service.image || `https://source.unsplash.com/collection/190727/320x200/?bus,${encodeURIComponent(service.from)}`;
+            resultsDiv.innerHTML += `
+                <div class="service-card fade-in">
+                    <div class="card-left">
+                        <img class="thumb" src="${imgUrl}" alt="bus">
+                        <div>
+                            <h3>${service.operator} - ${service.type}</h3>
+                            <p>Route: ${service.from} ➡ ${service.to}</p>
+                            <p>Departure: ${service.dep} &nbsp; • &nbsp; Arrival: ${service.arr} &nbsp; • &nbsp; Duration: ${computeDuration(service.dep, service.arr)}</p>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="fare-price">PKR ${service.price}</span>
+                        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+                            <button onclick="openRouteModal('${service.from}','${service.to}')" style="background:#17a2b8;">View Route</button>
+                            <button onclick="openSeatSelection(${service.id}, ${service.price}, '${service.operator}')">Book Seats</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        // Ensure newly added cards animate slightly in sequence
+        Array.from(resultsDiv.querySelectorAll('.service-card')).forEach((c, i) => { c.style.animationDelay = (i*70)+'ms'; });
+    });
+
+    // Show preview when user selects a city
+    const fromSelect = document.querySelector('input[name="from"]');
+    const toSelect = document.querySelector('input[name="to"]');
+    [fromSelect, toSelect].forEach(sel => {
+        if(!sel) return;
+        sel.addEventListener('input', showCityPreview);
+        // show suggestions when focused
+        sel.addEventListener('focus', () => showAcFor(sel === fromSelect ? 'from' : 'to'));
+    });
+
+    // Autocomplete helper: filter suggestion list and handle clicks
+    function showAcFor(which){
+        const ac = document.getElementById(which==='from' ? 'fromAc' : 'toAc');
+        if(!ac) return; ac.style.display = 'block';
+    }
+    function hideAc(which){
+        const ac = document.getElementById(which==='from' ? 'fromAc' : 'toAc');
+        if(!ac) return; ac.style.display = 'none';
+    }
+    // clicking suggestion
+    document.getElementById('fromAc').addEventListener('click', function(e){ if(e.target.classList.contains('ac-item')){ fromSelect.value = e.target.innerText; hideAc('from'); showCityPreview.call(fromSelect); }});
+    document.getElementById('toAc').addEventListener('click', function(e){ if(e.target.classList.contains('ac-item')){ toSelect.value = e.target.innerText; hideAc('to'); showCityPreview.call(toSelect); }});
+    // filter suggestions as user types
+    function filterAc(inputEl, acEl){
+        const q = (inputEl.value||'').toLowerCase();
+        Array.from(acEl.querySelectorAll('.ac-item')).forEach(it=>{ it.style.display = it.innerText.toLowerCase().includes(q) ? 'block' : 'none'; });
+        acEl.style.display = Array.from(acEl.querySelectorAll('.ac-item')).some(i=>i.style.display==='block') ? 'block' : 'none';
+    }
+    document.getElementById('fromInput').addEventListener('input', function(){ filterAc(this, document.getElementById('fromAc')); });
+    document.getElementById('toInput').addEventListener('input', function(){ filterAc(this, document.getElementById('toAc')); });
+    // hide on outside click
+    document.addEventListener('click', function(e){ if(!e.target.closest('.ac-wrapper')){ hideAc('from'); hideAc('to'); } });
+
+    function showCityPreview() {
+        const city = this.value || (this === fromSelect ? toSelect.value : fromSelect.value);
+        const preview = document.getElementById('cityPreview');
+        const img = document.getElementById('cityPreviewImg');
+        const text = document.getElementById('cityPreviewText');
+        if(!city) { preview.style.display = 'none'; return; }
+        // Use Unsplash simple photos for visual (online)
+        const photoUrl = `https://source.unsplash.com/collection/6664087/400x200/?${encodeURIComponent(city)}`;
+        img.src = photoUrl;
+        text.innerHTML = `<strong>${city}</strong><br>Popular pickup points, estimated travel times and experienced operators.`;
+        preview.style.display = 'block';
+    }
+
+    // 3. Open Seat Map
+    function openSeatSelection(id, price, operator) {
+        document.getElementById('searchSection').classList.add('hidden');
+        document.getElementById('seatSelectionSection').style.display = 'block';
+        
+        document.getElementById('routeInfoDisplay').innerText = `Booking for ${operator} (PKR ${price}/seat)`;
+        currentPrice = price;
+        selectedSeats = [];
+        currentServiceId = String(id);
+        renderSeats(currentServiceId);
+        updateSummary();
+        // ensure summary is visible on small screens
+        document.querySelector('.summary-box.sticky')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+
+    // 4. Render Bus Layout
+    function renderSeats(serviceId) {
+        const grid = document.getElementById('seatGrid');
+        grid.innerHTML = '';
+        const rows = 10;
+        const cols = ['A', 'B', 'AISLE', 'C', 'D'];
+
+        // Load blocked/booked seats for the service
+        const blockedMap = JSON.parse(localStorage.getItem('pakBusBlockedSeats')) || {};
+        const bookings = JSON.parse(localStorage.getItem('pakBusBookings')) || [];
+        const bookedSeats = (bookings.filter(b=>String(b.service_id)===String(serviceId)).flatMap(b=>b.seats||[])) || [];
+        const blocked = blockedMap[serviceId] || [];
+
+        for(let r=1; r<=rows; r++) {
+            cols.forEach(c => {
+                if(c === 'AISLE') {
+                    grid.innerHTML += `<div class="aisle"></div>`;
+                } else {
+                    const seatId = r + c;
+                    const isBooked = bookedSeats.includes(seatId) || blocked.includes(seatId);
+                    const bookedClass = isBooked ? 'booked' : '';
+                    const onclickAttr = isBooked ? '' : `onclick="toggleSeat(this, '${seatId}')"`;
+                    grid.innerHTML += `<div class="seat ${bookedClass}" ${onclickAttr}>${seatId}</div>`;
+                }
+            });
+        }
+    }
+
+    // Show skeleton cards while results load
+    function showSkeleton(container, count){
+        container.innerHTML = '<h3>Available Services:</h3>';
+        for(let i=0;i<count;i++){
+            container.innerHTML += `
+                <div class="skeleton-card">
+                    <div class="skeleton-thumb"></div>
+                    <div class="skeleton-lines">
+                        <div class="skeleton-line" style="width:40%;"></div>
+                        <div class="skeleton-line" style="width:60%;"></div>
+                        <div class="skeleton-line" style="width:30%;"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // 5. Toggle Seat Selection
+    function toggleSeat(el, id) {
+        if(el.classList.contains('selected')) {
+            el.classList.remove('selected');
+            selectedSeats = selectedSeats.filter(s => s !== id);
+        } else {
+            if(selectedSeats.length >= 6) { alert('Max 6 seats allowed'); return; }
+            el.classList.add('selected');
+            selectedSeats.push(id);
+        }
+        updateSummary();
+    }
+
+    function updateSummary() {
+        document.getElementById('selectedSeats').innerText = selectedSeats.join(', ') || 'None';
+        document.getElementById('totalPrice').innerText = selectedSeats.length * currentPrice;
+        document.getElementById('checkoutBtn').disabled = selectedSeats.length === 0;
+    }
+
+    function goBack() {
+        document.getElementById('seatSelectionSection').style.display = 'none';
+        document.getElementById('searchSection').classList.remove('hidden');
+    }
+
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if(!currentUser) {
+            alert('Please login to complete booking');
+            showAuthModal();
+            return;
+        }
+
+        const total = selectedSeats.length * currentPrice;
+        // Save booking with user ID
+        const bookings = JSON.parse(localStorage.getItem('pakBusBookings')) || [];
+        bookings.push({ 
+            user_id: currentUser.id,
+            service_id: currentServiceId, 
+            customer_name: currentUser.name, 
+            seats: selectedSeats.slice(), 
+            total_amount: total, 
+            booking_date: new Date().toISOString().split('T')[0] 
+        });
+        localStorage.setItem('pakBusBookings', JSON.stringify(bookings));
+
+        alert(`✓ Booking Confirmed!\nName: ${currentUser.name}\nSeats: ${selectedSeats.join(', ')}\nTotal: PKR ${total}\n\nCheck your history for details.`);
+        goToSearch();
+        location.reload();
+    });
+
+    // Calculate duration HH:MM between times (simple)
+    function computeDuration(dep, arr) {
+        if(!dep || !arr) return 'N/A';
+        try {
+            const [dh,dm] = dep.split(':').map(Number);
+            const [ah,am] = arr.split(':').map(Number);
+            let d = (ah*60+am) - (dh*60+dm);
+            if(d<0) d += 24*60;
+            const h = Math.floor(d/60); const m = d%60;
+            return `${h}h ${m}m`;
+        } catch(e){ return 'N/A'; }
+    }
+
+    // Route modal logic: approximate marker positions for major cities
+    const cityCoords = {
+        'Karachi': [560,720],
+        'Lahore': [640,320],
+        'Faisalabad': [620,360],
+        'Rawalpindi': [560,200],
+        'Islamabad': [540,190],
+        'Multan': [540,460],
+        'Peshawar': [420,120],
+        'Quetta': [320,540],
+        'Gujranwala': [630,320],
+        'Sialkot': [660,300],
+        'Hyderabad': [540,680]
+    };
+
+    function openRouteModal(from, to) {
+        const modal = document.getElementById('routeModal');
+        modal.classList.remove('hidden');
+        document.getElementById('routeFrom').innerText = from;
+        document.getElementById('routeTo').innerText = to;
+        document.getElementById('routeModalTitle').innerText = `${from} ➡ ${to}`;
+
+        // Render markers
+        const svg = document.getElementById('pakMap');
+        // remove previous markers
+        Array.from(svg.querySelectorAll('.marker')).forEach(n=>n.remove());
+        [from,to].forEach((c,idx)=>{
+            const pos = cityCoords[c];
+            if(pos) {
+                const [x,y] = pos;
+                const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', 10);
+                circle.setAttribute('fill', idx===0? '#1e90ff':'#ff6b00');
+                circle.setAttribute('class', 'marker');
+                svg.appendChild(circle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+                text.setAttribute('x', x+14);
+                text.setAttribute('y', y+4);
+                text.setAttribute('font-size','14');
+                text.setAttribute('fill','#045');
+                text.setAttribute('class','marker');
+                text.textContent = c;
+                svg.appendChild(text);
+            }
+        });
+    }
+
+    function closeRouteModal(){
+        document.getElementById('routeModal').classList.add('hidden');
+    }
+
+    // Swap cities function
+    function swapCities() {
+        const from = document.getElementById('fromInput').value;
+        const to = document.getElementById('toInput').value;
+        document.getElementById('fromInput').value = to;
+        document.getElementById('toInput').value = from;
+    }
+
+    // Populate popular routes
+    function loadPopularRoutes() {
+        const routes = [
+            { from: 'Karachi', to: 'Hyderabad', price: 500 },
+            { from: 'Lahore', to: 'Islamabad', price: 1200 },
+            { from: 'Lahore', to: 'Karachi', price: 3500 },
+            { from: 'Multan', to: 'Lahore', price: 2000 },
+            { from: 'Peshawar', to: 'Islamabad', price: 2500 },
+            { from: 'Rawalpindi', to: 'Lahore', price: 1800 }
+        ];
+        
+        const grid = document.getElementById('popularRoutesGrid');
+        if(grid) {
+            grid.innerHTML = '';
+            routes.forEach(route => {
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.onclick = () => {
+                    document.getElementById('fromInput').value = route.from;
+                    document.getElementById('toInput').value = route.to;
+                    document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+                    document.getElementById('searchSection').scrollIntoView({behavior:'smooth', block:'start'});
+                };
+                card.innerHTML = `
+                    <div class="route-name">${route.from} → ${route.to}</div>
+                    <div class="route-price">From PKR ${route.price}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    }
+
+    function closeRouteModal(){
+        document.getElementById('routeModal').classList.add('hidden');
+    }
+
+    // Initialize on page load
+    window.addEventListener('load', function() {
+        updateUserUI();
+        loadPopularRoutes();
+        populateCitySelects(); // Populate cities after DOM is ready
+    });
+    </script>
+    <!-- Route Modal -->
+    <div id="routeModal" class="modal hidden">
+        <div class="inner">
+            <div class="close" onclick="closeRouteModal()">✕</div>
+            <h3 id="routeModalTitle">Route Map</h3>
+            <div id="mapContainer" style="display:flex; gap:12px;">
+                <div style="flex:1;">
+                    <!-- Simplified Pakistan SVG map (decorative) -->
+                    <svg id="pakMap" viewBox="0 0 800 900" style="width:100%; height:400px; background:#f7fbfc; border-radius:6px;">
+                        <!-- simplified silhouette (not exact) -->
+                        <path d="M120 200 C140 160 220 150 260 170 C300 190 340 170 380 200 C420 230 460 220 500 240 C540 260 620 320 660 380 C700 440 720 520 710 580 C700 640 660 680 620 700 C580 720 520 740 460 740 C400 740 360 720 320 700 C280 680 240 660 200 620 C160 580 140 520 130 480 C120 440 110 360 120 200 Z" fill="#e6f2f8" stroke="#bcdff0"/>
+                        <!-- markers container -->
+                    </svg>
+                </div>
+                <div style="width:260px;">
+                    <div id="routeDetails" style="background:#fff; padding:12px; border-radius:6px; box-shadow:0 6px 14px rgba(0,0,0,0.05);">
+                        <strong>From:</strong> <span id="routeFrom"></span><br>
+                        <strong>To:</strong> <span id="routeTo"></span><br>
+                        <div id="mapNote" style="margin-top:8px; font-size:0.95rem; color:#555;">Markers are approximate and for visualization only.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Popular Routes Section -->
+    <div class="popular-section">
+        <h2>🚌 Popular Routes</h2>
+        <div class="routes-grid" id="popularRoutesGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Why Choose Us Section -->
+    <div class="features-section">
+        <h2>Why Choose Us?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <div class="feature-title">Safe Travel</div>
+                <div class="feature-desc">Licensed operators with trained drivers</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛋️</div>
+                <div class="feature-title">Luxury Seats</div>
+                <div class="feature-desc">Comfortable reclinable seats for long journeys</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🕐</div>
+                <div class="feature-title">On Time</div>
+                <div class="feature-desc">Reliable schedules with real-time tracking</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <div class="feature-title">Best Prices</div>
+                <div class="feature-desc">Competitive fares with no hidden charges</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-title">Travel Insurance</div>
+                <div class="feature-desc">Free basic travel insurance with every booking</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📞</div>
+                <div class="feature-title">24/7 Support</div>
+                <div class="feature-desc">Customer support whenever you need help</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <div>
+                    <a href="javascript:void(0)">About Us</a> | 
+                    <a href="javascript:void(0)">Contact</a> | 
+                    <a href="javascript:void(0)">Privacy Policy</a> | 
+                    <a href="javascript:void(0)">Terms & Conditions</a> | 
+                    <a href="admin_portal.html" style="font-size:11px; opacity:0.7;">Admin Portal</a>
+                </div>
+            </div>
+            <div class="social-icons">
+                <div class="social-icon" title="Facebook">f</div>
+                <div class="social-icon" title="Twitter">𝕏</div>
+                <div class="social-icon" title="Instagram">📷</div>
+                <div class="social-icon" title="WhatsApp">💬</div>
+            </div>
+            <div class="footer-bottom">
+                <p style="margin:0;">© 2024 Pakistan Bus Services. All rights reserved. | Emergency: +92-300-XXXX-XXX</p>
+            </div>
+        </div>
+    </footer>
+    </div>
+</body>
+</html>

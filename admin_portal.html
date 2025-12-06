@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Bus Services</title>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <style>
+        /* --- CSS STYLES --- */
+        body { font-family: 'Segoe UI', 'Roboto', sans-serif; background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); margin: 0; padding: 0; min-height:100vh; position:relative; }
+        body::before { content:''; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:700px; height:700px; background-image:url('images/logo.png'); background-size:contain; background-repeat:no-repeat; background-position:center; opacity:0.15; pointer-events:none; z-index:0; }
+        
+        /* Navbar */
+        .navbar { background:linear-gradient(90deg,#1e3c72,#2a5298); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items:center; box-shadow:0 8px 24px rgba(0,0,0,0.3); position:relative; z-index:10; border-bottom:3px solid #ff6b35; }
+        .navbar-brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:18px; }
+        .navbar-logo { width:40px; height:40px; background:#ff6b35; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 4px 12px rgba(255,107,53,0.4); }
+        .navbar a { color: white; margin-left: 20px; text-decoration: none; cursor: pointer; transition:all .3s ease; font-weight:600; }
+        .navbar a:hover { color:#ff6b35; text-shadow:0 0 8px rgba(255,107,53,0.5); }
+
+        /* Auth Container */
+        .auth-container { max-width: 420px; margin: 60px auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position:relative; z-index:1; }
+        .auth-container h2 { margin-top:0; text-align:center; background:linear-gradient(135deg,#1e3c72,#2a5298); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .auth-tabs { display: flex; border-bottom: 3px solid #e0e0e0; margin-bottom: 24px; gap:0; }
+        .tab { flex: 1; text-align: center; padding: 14px; cursor: pointer; color: #999; font-weight: bold; transition:all .3s ease; border-bottom:3px solid transparent; }
+        .tab.active { color:#2a5298; border-bottom-color:#ff6b35; }
+        .tab:hover { color:#2a5298; }
+
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #e0e0e0; border-radius: 8px; box-sizing: border-box; font-size:14px; transition:all .3s ease; }
+        input:focus, select:focus { outline:none; border-color:#2a5298; background:#f9fbff; box-shadow:0 0 0 4px rgba(42,82,152,0.1); }
+        .btn { width: 100%; padding: 12px; background:linear-gradient(135deg,#2a5298,#1e3c72); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 12px; font-weight:600; transition:all .3s ease; box-shadow:0 4px 12px rgba(42,82,152,0.3); }
+        .btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(42,82,152,0.5); }
+        .btn:active { transform:translateY(0); }
+
+        /* Dashboard Container */
+        #dashboardContainer { display: none; max-width: 1200px; margin: 30px auto; background: white; padding: 0; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); position:relative; z-index:1; overflow:hidden; }
+        .hidden { display: none; }
+        /* Animations */
+        .fade-in { animation: fadeInAdmin .32s ease both; }
+        @keyframes fadeInAdmin { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform:none;} }
+        .list-item { transition: transform .14s ease, box-shadow .14s ease; }
+        .list-item:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(42,82,152,0.1); }
+        .small-ctrl { padding:10px 16px; font-size:0.9rem; border-radius:8px; }
+        /* Stats Cards */
+        .stat-card { flex:1; min-width:160px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:20px; border-radius:12px; box-shadow:0 8px 24px rgba(102,126,234,0.2); text-align:center; transition:all .3s ease; }
+        .stat-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(102,126,234,0.3); }
+        .stat-card strong { font-size:28px; display:block; }
+        .stat-card div { font-size:12px; margin-top:8px; opacity:0.9; }
+        /* Section Headers */
+        #dashboardContainer h3 { color:#1e3c72; margin-top:0; border-bottom:2px solid #ff6b35; padding-bottom:12px; }
+        /* Form Styles */
+        #addServiceForm label, #addCityForm label { font-weight:600; color:#333; margin-top:12px; display:block; }
+        /* List Styles */
+        #citiesList, #adminServicesList, #bookingsList { list-style:none; padding:0; margin:0; }
+        #citiesList li, #adminServicesList li, #bookingsList li { padding:12px; margin-bottom:8px; background:white; border-radius:8px; border-left:4px solid #2a5298; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <div id="authScreen">
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <div class="tab active" onclick="switchTab('login')">Login</div>
+                <div class="tab" onclick="switchTab('register')">Create Account</div>
+            </div>
+
+            <form id="loginForm">
+                <h3>Admin Login</h3>
+                <input id="adminEmail" type="email" placeholder="Email Address" required>
+                <input id="adminPassword" type="password" placeholder="Password" required>
+                <small style="color:#666; display:block; margin-top:8px;">Credentials are required to access admin dashboard</small>
+                <button type="submit" class="btn">Login</button>
+            </form>
+
+            <form id="registerForm" class="hidden">
+                <h3>Create Admin Account</h3>
+                <input id="regName" type="text" placeholder="Company Name" required>
+                <input id="regEmail" type="email" placeholder="Email Address" required>
+                <input id="regPassword" type="password" placeholder="Password (min 6 chars)" required>
+                <input id="regPhone" type="tel" placeholder="Phone Number" required>
+                <button type="submit" class="btn" style="background:#28a745;">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboardContainer">
+        <div class="navbar" style="margin:0; border-radius: 0;">
+            <div class="navbar-brand">
+                <div class="navbar-logo"><img src="images/logo.png" alt="Pakistan Bus Logo" style="width:100%; height:100%; object-fit:contain;"></div>
+                <span>Admin Dashboard</span>
+            </div>
+            <div style="display:flex; gap:16px; align-items:center;">
+                <a href="customer_portal.html" target="_blank" style="background:#ff6b35; padding:8px 16px; border-radius:8px; color:white;">👥 Customer Portal</a>
+                <a onclick="logout()" style="cursor:pointer;">Logout</a>
+            </div>
+        </div>
+
+        <h2>Admin Dashboard</h2>
+        <div style="display:flex; gap:24px; align-items:flex-start; padding:24px;">
+            <div style="width:260px;">
+                <div style="background:linear-gradient(135deg,#2a5298,#1e3c72); color:white; padding:20px; border-radius:12px; box-shadow:0 8px 24px rgba(42,82,152,0.3);">
+                    <h4 style="margin:0 0 16px 0; color:#ff6b35;">Manage</h4>
+                    <button class="btn" style="background:#ff6b35; margin-bottom:8px;" onclick="showSection('dashboardOverview')">📊 Overview</button>
+                    <button class="btn" style="margin-bottom:8px;" onclick="showSection('cityManagement')">🏙️ Cities</button>
+                    <button class="btn" style="margin-bottom:8px;" onclick="showSection('routeManagement')">➕ Routes</button>
+                    <button class="btn" style="margin-bottom:8px;" onclick="showSection('bookingsSection')">📑 Bookings</button>
+                    <button class="btn" style="margin-bottom:16px;" onclick="showSection('inventorySection')">🪑 Inventory</button>
+                    <div style="display:flex; gap:8px; flex-direction:column;">
+                        <button class="btn small-ctrl" style="background:#20c997;" onclick="exportData()">📥 Export Data</button>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="btn small-ctrl" style="background:#17a2b8;" onclick="triggerImport()">📤 Import Data</button>
+                            <input id="importFileInput" type="file" accept="application/json" style="display:none" onchange="handleImportFile(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:1; background:#f8f9fa; padding:24px; border-radius:12px; border:1px solid #e0e0e0;">
+                <div id="dashboardOverview">
+                    <h3>📊 Overview</h3>
+                    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                        <div class="stat-card">
+                            <strong id="statServices">0</strong>
+                            <div>Active Services</div>
+                        </div>
+                        <div class="stat-card">
+                            <strong id="statBookings">0</strong>
+                            <div>Total Bookings</div>
+                        </div>
+                        <div class="stat-card">
+                            <strong id="statRevenue">PKR 0</strong>
+                            <div>Revenue</div>
+                        </div>
+                        <div class="stat-card">
+                            <strong id="statUpcoming">0</strong>
+                            <div>Routes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cityManagement" class="hidden">
+                    <h3>🏙️ City Management</h3>
+                    <form id="addCityForm" style="display:flex; gap:12px; align-items:flex-end; margin-bottom:16px;">
+                        <div style="flex:1;">
+                            <label style="margin:0 0 6px 0;">Add New City</label>
+                            <input id="newCityInput" placeholder="Enter city name (e.g. Larkana)" style="margin:0;">
+                        </div>
+                        <button type="submit" class="btn" style="width:160px; margin:0;">Add City</button>
+                    </form>
+                    <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <h4 style="margin:0 0 12px 0; color:#2a5298;">📍 Saved Cities</h4>
+                        <ul id="citiesList" style="margin:0; padding:0;"></ul>
+                    </div>
+                </div>
+
+                <div id="routeManagement" class="hidden">
+                    <h3>Routes / Services</h3>
+                    <form id="addServiceForm">
+                        <label>Operator</label>
+                        <input id="operatorName" placeholder="Operator name" required>
+
+                        <label>From City</label>
+                        <select id="fromCitySelect"></select>
+
+                        <label>To City</label>
+                        <select id="toCitySelect"></select>
+
+                        <label>Departure Time</label>
+                        <input type="time" id="depTimeInput" required>
+
+                        <label>Arrival Time</label>
+                        <input type="time" id="arrTimeInput" required>
+
+                        <label>Image URL (optional)</label>
+                        <input id="imageUrlInput" placeholder="https://example.com/bus.jpg">
+
+                        <label>Select Local Image</label>
+                        <select id="localImageSelect">
+                            <option value="">(none)</option>
+                            <option value="images/bus1.svg">Local - Bus 1</option>
+                            <option value="images/bus2.svg">Local - Bus 2</option>
+                            <option value="images/city_lahore.svg">Local - Lahore</option>
+                            <option value="images/city_karachi.svg">Local - Karachi</option>
+                        </select>
+
+                        <label>Upload Image (optional)</label>
+                        <input id="uploadImageInput" type="file" accept="image/*">
+                        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                            <img id="uploadPreview" src="" alt="preview" style="width:120px; height:72px; object-fit:cover; border-radius:6px; display:none; border:1px solid #ddd;">
+                            <button type="button" class="btn small-ctrl" style="width:auto; background:#6c757d;" onclick="clearUpload()">Clear Upload</button>
+                        </div>
+
+                        <label>Bus Type</label>
+                        <select id="busTypeSelect">
+                            <option>Standard</option>
+                            <option>Executive</option>
+                            <option>Business Class</option>
+                        </select>
+
+                        <label style="color:#28a745; font-weight:bold;">Fare Price (PKR)</label>
+                        <input type="number" id="fareInput" placeholder="e.g. 3500" required>
+
+                        <label>Effective From (optional)</label>
+                        <input type="date" id="effectiveFrom">
+
+                        <label>Effective To (optional)</label>
+                        <input type="date" id="effectiveTo">
+
+                        <button type="submit" class="btn" style="background:#28a745;">Save Route / Service</button>
+                    </form>
+
+                    <div style="margin-top:12px; background:#fff; padding:12px; border-radius:8px;">
+                        <strong>Existing Services</strong>
+                        <ul id="adminServicesList" style="margin-top:8px;"></ul>
+                    </div>
+                </div>
+
+                <div id="bookingsSection" class="hidden">
+                    <h3>📑 Customer Bookings</h3>
+                    <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <ul id="bookingsList"></ul>
+                    </div>
+                </div>
+
+                <div id="inventorySection" class="hidden">
+                    <h3>🪑 Block Seats</h3>
+                    <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom:16px;">
+                        <label style="font-weight:600; color:#333;">Service ID</label>
+                        <input id="blockServiceId" placeholder="Service ID (e.g. 101)">
+                        <label style="font-weight:600; color:#333; margin-top:12px;">Seats to Block</label>
+                        <input id="blockSeatsInput" placeholder="1A,1B,1C (comma separated)">
+                        <button class="btn" style="margin-top:12px; background:#ff6b35;" onclick="blockSeats()">Block Seats</button>
+                    </div>
+                    <div id="blockedInfo" style="background:white; padding:16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* --- UPDATED ADMIN JAVASCRIPT --- */
+    
+    // Initialize cities immediately
+    (function initializeCities() {
+        const defaultCities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+        const existing = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+        if(existing.length === 0) {
+            defaultCities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+            localStorage.setItem('pakBusCities', JSON.stringify(defaultCities));
+        }
+    })();
+
+    // 1. Auth Tabs Switcher
+    function switchTab(mode) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        if(mode === 'login') {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.querySelectorAll('.tab')[0].classList.add('active');
+        } else {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.querySelectorAll('.tab')[1].classList.add('active');
+        }
+    }
+
+    // 2. Handle Login - MANDATORY AUTHENTICATION
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value.trim();
+        
+        // Validate inputs are not empty
+        if(!email || !password) {
+            alert('Email and password are required!');
+            return;
+        }
+        
+        // Check against stored admin accounts
+        let admins = JSON.parse(localStorage.getItem('pakBusAdmins')) || [];
+        const admin = admins.find(a => a.email === email && a.password === password);
+        
+        if(!admin) {
+            alert('Invalid email or password. Please try again or create an account.');
+            return;
+        }
+        
+        // Store current admin session
+        const session = { id: admin.id, name: admin.name, email: admin.email, loginTime: new Date().toISOString() };
+        localStorage.setItem('currentAdmin', JSON.stringify(session));
+        
+        // Show dashboard
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
+        await loadActiveServices(); // Load services when dashboard opens
+    });
+
+    // 3. Handle Registration
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('regName').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const phone = document.getElementById('regPhone').value.trim();
+        
+        // Validation
+        if(!name || !email || !password || !phone) {
+            alert('All fields are required!');
+            return;
+        }
+        
+        if(password.length < 6) {
+            alert('Password must be at least 6 characters!');
+            return;
+        }
+        
+        // Check if email already exists
+        let admins = JSON.parse(localStorage.getItem('pakBusAdmins')) || [];
+        if(admins.find(a => a.email === email)) {
+            alert('This email is already registered!');
+            return;
+        }
+        
+        // Create new admin account
+        const newAdmin = {
+            id: Date.now(),
+            name: name,
+            email: email,
+            password: password,
+            phone: phone,
+            createdAt: new Date().toISOString()
+        };
+        
+        admins.push(newAdmin);
+        localStorage.setItem('pakBusAdmins', JSON.stringify(admins));
+        
+        alert('Account created successfully! You can now login.');
+        switchTab('login');
+        document.getElementById('loginForm').reset();
+    });
+
+    // 5. Logout Function
+    function logout() {
+        if(confirm('Logout from admin account?')) {
+            localStorage.removeItem('currentAdmin');
+            document.getElementById('authScreen').style.display = 'block';
+            document.getElementById('dashboardContainer').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            switchTab('login');
+        }
+    }
+    function showSection(id) {
+        const sections = ['dashboardOverview','cityManagement','routeManagement','bookingsSection','inventorySection'];
+        sections.forEach(s => { const el = document.getElementById(s); if(el) el.classList.add('hidden'); });
+        const target = document.getElementById(id);
+        if(target) {
+            target.classList.remove('hidden');
+            target.classList.add('fade-in');
+            setTimeout(()=> target.classList.remove('fade-in'), 400);
+        }
+    }
+
+    
+
+    // 6. View Services Logic - localStorage-backed
+    // uploaded image data URL when admin uses file upload
+    let uploadedImageData = null;
+    function loadActiveServices() {
+        try {
+            const services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+
+            // Legacy view (if present)
+            const listContainerOld = document.querySelector('#viewServicesSection ul');
+            if(listContainerOld) {
+                if(services.length === 0) listContainerOld.innerHTML = '<li>No active services found. Add one!</li>';
+                else {
+                    listContainerOld.innerHTML = '';
+                    services.forEach(s => listContainerOld.innerHTML += `<li>${s.from || s.from_city} ➡ ${s.to || s.to_city} (${s.type || s.bus_type}) : PKR ${s.price || s.fare_price}</li>`);
+                }
+            }
+
+            const adminList = document.getElementById('adminServicesList');
+            if(adminList) {
+                adminList.innerHTML = '';
+                services.forEach(s => {
+                    const img = s.image || '';
+                    const imgHtml = img ? ('<img src="' + img + '" style="width:90px;height:56px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle;cursor:pointer;" onclick="openImagePreview(this.src)">') : '';
+                    const id = s.id || s.service_id;
+                    const operator = s.operator || '';
+                    const from = s.from || s.from_city || '';
+                    const to = s.to || s.to_city || '';
+                    const type = s.type || s.bus_type || '';
+                    const price = s.price || s.fare_price || '';
+                    adminList.innerHTML += `<li class="list-item" style="margin-bottom:8px;">${imgHtml}<strong>ID:${id}</strong> ${operator} — ${from} ➡ ${to} (${type}) @ PKR ${price} &nbsp; <button onclick="editService('${id}')" style="margin-left:8px;">Edit</button> <button onclick="deleteService('${id}')" style="margin-left:8px;">Delete</button></li>`;
+                });
+            }
+
+            refreshDashboard();
+        } catch(err) {
+            console.error('loadActiveServices error', err);
+            alert('Could not load services from localStorage.');
+        }
+    }
+
+    function deleteService(id) {
+        if(!confirm('Delete service ' + id + '?')) return;
+        let services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+        services = services.filter(s => String(s.id) !== String(id));
+        localStorage.setItem('pakBusServices', JSON.stringify(services));
+        alert('Service removed');
+        loadActiveServices();
+    }
+
+    // Export / Import admin data (cities, services, bookings, blocked seats)
+    function exportData() {
+        const payload = {
+            pakBusCities: JSON.parse(localStorage.getItem('pakBusCities') || '[]'),
+            pakBusServices: JSON.parse(localStorage.getItem('pakBusServices') || '[]'),
+            pakBusBookings: JSON.parse(localStorage.getItem('pakBusBookings') || '[]'),
+            pakBusBlockedSeats: JSON.parse(localStorage.getItem('pakBusBlockedSeats') || '{}')
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `pakbus-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport(){
+        document.getElementById('importFileInput').value = null;
+        document.getElementById('importFileInput').click();
+    }
+
+    function handleImportFile(e){
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(){
+            try{
+                const data = JSON.parse(reader.result);
+                if(!confirm('Importing will overwrite local data for cities/services/bookings/blocked seats. Continue?')) return;
+                if(data.pakBusCities) {
+                    // ensure imported cities are sorted
+                    data.pakBusCities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+                    localStorage.setItem('pakBusCities', JSON.stringify(data.pakBusCities));
+                }
+                if(data.pakBusServices) localStorage.setItem('pakBusServices', JSON.stringify(data.pakBusServices));
+                if(data.pakBusBookings) localStorage.setItem('pakBusBookings', JSON.stringify(data.pakBusBookings));
+                if(data.pakBusBlockedSeats) localStorage.setItem('pakBusBlockedSeats', JSON.stringify(data.pakBusBlockedSeats));
+                alert('Import complete. Reloading dashboard.');
+                refreshDashboard();
+            } catch(err){ alert('Invalid JSON file'); }
+        };
+        reader.readAsText(file);
+    }
+
+    function editService(id) {
+        const services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+        const svc = services.find(s => String(s.id) === String(id));
+        if(!svc) return alert('Service not found');
+        // Show route management form and populate
+        showSection('routeManagement');
+        document.getElementById('operatorName').value = svc.operator || '';
+        document.getElementById('fromCitySelect').value = svc.from || '';
+        document.getElementById('toCitySelect').value = svc.to || '';
+        document.getElementById('depTimeInput').value = svc.dep || '';
+        document.getElementById('arrTimeInput').value = svc.arr || '';
+        document.getElementById('busTypeSelect').value = svc.type || '';
+        document.getElementById('fareInput').value = svc.price || '';
+        document.getElementById('effectiveFrom').value = svc.effectiveFrom || '';
+        document.getElementById('effectiveTo').value = svc.effectiveTo || '';
+        document.getElementById('imageUrlInput').value = (svc.image && !svc.image.startsWith('images/')) ? svc.image : '';
+        // if local image, set selector
+        if(svc.image && svc.image.startsWith('images/')) document.getElementById('localImageSelect').value = svc.image; else document.getElementById('localImageSelect').value = '';
+        // if stored image is a data URL, show it in preview
+        const upPreview = document.getElementById('uploadPreview');
+        if(svc.image && svc.image.startsWith('data:')) {
+            uploadedImageData = svc.image;
+            upPreview.src = svc.image; upPreview.style.display = 'block';
+        } else {
+            uploadedImageData = null;
+            if(upPreview) { upPreview.src = ''; upPreview.style.display = 'none'; }
+        }
+        editingServiceId = svc.id;
+        // change button label
+        document.querySelector('#addServiceForm button[type="submit"]').innerText = 'Update Service';
+        // scroll to form area
+        document.getElementById('operatorName').scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    // Dashboard helper
+    function refreshDashboard() {
+        try {
+            const services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+            const bookings = JSON.parse(localStorage.getItem('pakBusBookings')) || [];
+
+            const revenue = bookings.reduce((sum,b) => sum + (Number(b.total_amount)||0), 0);
+            document.getElementById('statServices').innerText = services.length;
+            document.getElementById('statBookings').innerText = bookings.length;
+            document.getElementById('statRevenue').innerText = `PKR ${revenue}`;
+            document.getElementById('statUpcoming').innerText = services.length; // simplified
+
+            // Render bookings list for admin
+            const bList = document.getElementById('bookingsList');
+            if(bList) {
+                bList.innerHTML = '';
+                bookings.forEach(b => {
+                    const svc = services.find(s=> String(s.id)===String(b.service_id)) || {};
+                    bList.innerHTML += `<li><strong>${b.customer_name||'Guest'}</strong> — Service:${b.service_id} (${svc.from||'?' }➡${svc.to||'?'}) Seats:${(b.seats||[]).join(', ')} Total:PKR ${b.total_amount}</li>`;
+                });
+                if(bookings.length===0) bList.innerHTML = '<li>No bookings yet.</li>';
+            }
+
+            // Render cities
+            const cities = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+            const citiesList = document.getElementById('citiesList');
+            if(citiesList) {
+                citiesList.innerHTML = '';
+                cities.forEach((c,idx) => {
+                    citiesList.innerHTML += `<li>${c} <button onclick="deleteCity(${idx})" style="margin-left:8px;">Delete</button></li>`;
+                });
+                if(cities.length===0) citiesList.innerHTML = '<li>No cities saved yet.</li>';
+            }
+
+            // Fill selects for route management
+            fillCitySelects();
+        } catch(err) {
+            console.error('refreshDashboard error', err);
+        }
+    }
+
+    function deleteCity(index) {
+        let cities = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+        cities.splice(index,1);
+        localStorage.setItem('pakBusCities', JSON.stringify(cities));
+        refreshDashboard();
+    }
+
+    function fillCitySelects() {
+        const cities = JSON.parse(localStorage.getItem('pakBusCities')) || ["Karachi","Lahore","Islamabad","Multan","Peshawar"];
+        // ensure alphabetical order
+        cities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+        const fromSel = document.getElementById('fromCitySelect');
+        const toSel = document.getElementById('toCitySelect');
+        if(fromSel && toSel) {
+            fromSel.innerHTML = '<option value="">Select city</option>';
+            toSel.innerHTML = '<option value="">Select city</option>';
+            cities.forEach(c => {
+                fromSel.innerHTML += `<option value=\"${c}\">${c}</option>`;
+                toSel.innerHTML += `<option value=\"${c}\">${c}</option>`;
+            });
+        }
+    }
+
+    // New: handle add city
+    document.getElementById('addCityForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const name = document.getElementById('newCityInput').value.trim();
+        if(!name) return alert('Enter a city name');
+        let cities = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+        if(cities.includes(name)) return alert('City already exists');
+        cities.push(name);
+        // keep cities sorted
+        cities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+        localStorage.setItem('pakBusCities', JSON.stringify(cities));
+        document.getElementById('newCityInput').value = '';
+        refreshDashboard();
+    });
+
+    // Handle add/update service (route)
+    let editingServiceId = null;
+    document.getElementById('addServiceForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const operator = document.getElementById('operatorName').value || 'Operator';
+        const from = document.getElementById('fromCitySelect').value;
+        const to = document.getElementById('toCitySelect').value;
+        const dep = document.getElementById('depTimeInput').value;
+        const arr = document.getElementById('arrTimeInput').value;
+        const type = document.getElementById('busTypeSelect').value;
+        const price = document.getElementById('fareInput').value;
+        const effFrom = document.getElementById('effectiveFrom').value || null;
+        const effTo = document.getElementById('effectiveTo').value || null;
+        const imageUrl = document.getElementById('imageUrlInput').value || '';
+        const localImage = document.getElementById('localImageSelect').value || '';
+        // Prefer an uploaded image (data URL), then a local image, then an external URL
+        const image = uploadedImageData || localImage || imageUrl || null;
+
+        if(!from || !to) return alert('Choose from and to cities');
+        if(from === to) return alert('Source and destination cannot be same');
+
+        let services = JSON.parse(localStorage.getItem('pakBusServices')) || [];
+
+        if(editingServiceId) {
+            services = services.map(s=>{
+                if(String(s.id) === String(editingServiceId)) {
+                    return Object.assign({}, s, { operator, from, to, dep, arr, type, price, effectiveFrom: effFrom, effectiveTo: effTo, image });
+                }
+                return s;
+            });
+            localStorage.setItem('pakBusServices', JSON.stringify(services));
+            alert('Service updated');
+            editingServiceId = null;
+        } else {
+            const newService = { id: Date.now(), operator, from, to, dep, arr, type, price, image, effectiveFrom: effFrom, effectiveTo: effTo };
+            services.push(newService);
+            localStorage.setItem('pakBusServices', JSON.stringify(services));
+            alert('Service saved');
+        }
+
+        e.target.reset();
+        document.getElementById('localImageSelect').value = '';
+        // clear uploaded image after saving
+        uploadedImageData = null;
+        const upPreview = document.getElementById('uploadPreview'); if(upPreview){ upPreview.src=''; upPreview.style.display='none'; }
+        // reset submit button label
+        const submitBtn = document.querySelector('#addServiceForm button[type="submit"]');
+        if(submitBtn) submitBtn.innerText = 'Save Route / Service';
+        loadActiveServices();
+    });
+
+    // Block seats function (call backend)
+    function blockSeats(){
+        const sid = document.getElementById('blockServiceId').value.trim();
+        const seatsText = document.getElementById('blockSeatsInput').value.trim();
+        if(!sid || !seatsText) return alert('Provide service ID and seats');
+        const seats = seatsText.split(',').map(s=>s.trim()).filter(Boolean);
+        const blocked = JSON.parse(localStorage.getItem('pakBusBlockedSeats')) || {};
+        blocked[sid] = Array.from(new Set([...(blocked[sid]||[]), ...seats]));
+        localStorage.setItem('pakBusBlockedSeats', JSON.stringify(blocked));
+        document.getElementById('blockedInfo').innerText = `Blocked for ${sid}: ${blocked[sid].join(', ')}`;
+        alert('Seats blocked');
+    }
+
+    // Upload handling
+    document.getElementById('uploadImageInput').addEventListener('change', function(e){
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+        if(!file.type.startsWith('image/')) return alert('Please select an image file');
+        const reader = new FileReader();
+        reader.onload = function(){
+            uploadedImageData = reader.result; // data URL
+            const up = document.getElementById('uploadPreview');
+            up.src = uploadedImageData; up.style.display = 'block';
+            // clear other image inputs to avoid conflicts
+            document.getElementById('localImageSelect').value = '';
+            document.getElementById('imageUrlInput').value = '';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function clearUpload(){
+        uploadedImageData = null;
+        const up = document.getElementById('uploadPreview'); if(up){ up.src=''; up.style.display='none'; }
+        document.getElementById('uploadImageInput').value = null;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', async function(){
+        // CHECK IF ADMIN IS LOGGED IN
+        const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin'));
+        if(!currentAdmin) {
+            // Not logged in - show auth screen
+            document.getElementById('authScreen').style.display = 'block';
+            document.getElementById('dashboardContainer').style.display = 'none';
+        } else {
+            // Already logged in - show dashboard
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('dashboardContainer').style.display = 'block';
+        }
+        
+        // Always initialize cities array
+        const defaultCities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+        let cities = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+        
+        // If cities don't exist or are empty, set defaults
+        if(cities.length === 0) {
+            cities = defaultCities;
+            cities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+            localStorage.setItem('pakBusCities', JSON.stringify(cities));
+        }
+        
+        await refreshDashboard();
+        showSection('dashboardOverview');
+    });
+    
+    // Image preview modal for admin thumbnails
+    function openImagePreview(src){
+        const modal = document.getElementById('imgPreviewModal');
+        const img = document.getElementById('imgPreviewLarge');
+        if(!modal || !img) return;
+        img.src = src || '';
+        modal.classList.remove('hidden');
+    }
+    function closeImagePreview(){
+        const modal = document.getElementById('imgPreviewModal');
+        const img = document.getElementById('imgPreviewLarge');
+        if(!modal || !img) return;
+        modal.classList.add('hidden'); img.src = '';
+    }
+</script>
+<!-- Admin image preview modal -->
+<div id="imgPreviewModal" class="modal hidden">
+    <div class="inner">
+        <div class="close" onclick="closeImagePreview()">✕</div>
+        <div style="display:flex; justify-content:center; align-items:center;">
+            <img id="imgPreviewLarge" src="" alt="preview" style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 12px 36px rgba(0,0,0,0.2);">
+        </div>
+    </div>
+</div>
+</body>
+</html>

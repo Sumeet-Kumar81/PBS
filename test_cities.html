@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cities</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #0066ff; border-radius: 4px; }
+        .cities-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .city-badge { background: #0066ff; color: white; padding: 8px 12px; border-radius: 4px; text-align: center; font-size: 13px; }
+        button { background: #0066ff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0052cc; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏙️ Cities Test</h1>
+        
+        <div class="section">
+            <strong>localStorage Status:</strong>
+            <p id="storageStatus"></p>
+        </div>
+        
+        <div class="section">
+            <strong>Cities Found:</strong>
+            <div id="citiesCount"></div>
+            <div id="citiesList" class="cities-list"></div>
+        </div>
+        
+        <div class="section">
+            <button onclick="resetCities()">🔄 Reset Cities</button>
+            <button onclick="clearStorage()">🗑️ Clear Storage</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize immediately
+        (function() {
+            const defaultCities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+            const existing = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+            if(existing.length === 0) {
+                defaultCities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+                localStorage.setItem('pakBusCities', JSON.stringify(defaultCities));
+            }
+        })();
+        
+        // Display cities
+        window.addEventListener('load', function() {
+            const cities = JSON.parse(localStorage.getItem('pakBusCities')) || [];
+            const statusEl = document.getElementById('storageStatus');
+            const countEl = document.getElementById('citiesCount');
+            const listEl = document.getElementById('citiesList');
+            
+            if(cities.length > 0) {
+                statusEl.innerHTML = '<span class="success">✓ Cities are stored in localStorage</span>';
+                countEl.innerHTML = `<span class="success">✓ ${cities.length} cities found</span>`;
+                
+                listEl.innerHTML = '';
+                cities.forEach(city => {
+                    const badge = document.createElement('div');
+                    badge.className = 'city-badge';
+                    badge.textContent = city;
+                    listEl.appendChild(badge);
+                });
+            } else {
+                statusEl.innerHTML = '<span class="error">✗ No cities found in localStorage</span>';
+                countEl.innerHTML = '<span class="error">✗ 0 cities</span>';
+            }
+        });
+        
+        function resetCities() {
+            const defaultCities = ['Abbottabad','Bahawalpur','Dadu','Faisalabad','Ghotki','Gujranwala','Hyderabad','Islamabad','Jamshoro','Karachi','Kharipur','Lahore','Larkana','Mardan','Mirpurkhas','Multan','Peshawar','Quetta','Rawalpindi','Sheikhupura','Sukkur','Thatta','Mithi'];
+            defaultCities.sort((a,b)=> a.localeCompare(b, 'en', {sensitivity:'base'}));
+            localStorage.setItem('pakBusCities', JSON.stringify(defaultCities));
+            alert('Cities reset! Refresh the page.');
+            location.reload();
+        }
+        
+        function clearStorage() {
+            if(confirm('Clear all localStorage data?')) {
+                localStorage.clear();
+                alert('Storage cleared! Refresh the page.');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
