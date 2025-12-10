@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
+  <rect width="400" height="240" rx="12" fill="#fff7f0"/>
+  <circle cx="320" cy="60" r="40" fill="#114b8c"/>
+  <rect x="40" y="110" width="300" height="80" rx="8" fill="#0b6fa4"/>
+  <text x="200" y="158" font-size="20" fill="#fff" text-anchor="middle" font-family="Segoe UI">Karachi</text>
+</svg>

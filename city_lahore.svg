@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
+  <rect width="400" height="240" rx="12" fill="#f3f6fb"/>
+  <circle cx="80" cy="80" r="36" fill="#ffd166"/>
+  <rect x="140" y="110" width="220" height="80" rx="8" fill="#114b8c"/>
+  <text x="200" y="158" font-size="20" fill="#fff" text-anchor="middle" font-family="Segoe UI">Lahore</text>
+</svg>
