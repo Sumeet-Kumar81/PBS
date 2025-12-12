@@ -738,6 +738,49 @@
         }
     };
 
+    // Function to get city image filename (handles different naming conventions)
+    function getCityImageFilename(cityName) {
+        // Convert city name to lowercase and handle special cases
+        const cityMap = {
+            'Karachi': 'karachi',
+            'Lahore': 'lahore',
+            'Islamabad': 'islamabad',
+            'Rawalpindi': 'rawalpindi',
+            'Faisalabad': 'faisalabad',
+            'Multan': 'multan',
+            'Peshawar': 'peshawar',
+            'Quetta': 'quetta',
+            'Hyderabad': 'hyderabad',
+            'Sukkur': 'sukkur',
+            'Gujranwala': 'gujranwala',
+            'Abbottabad': 'abbottabad',
+            'Bahawalpur': 'bahawalpur',
+            'Dadu': 'dadu',
+            'Ghotki': 'ghotki',
+            'Jamshoro': 'jamshoro',
+            'Kharipur': 'khairpur', // Note: Spelling difference
+            'Larkana': 'larkana',
+            'Mardan': 'mardan',
+            'Mirpurkhas': 'mirpurkhas',
+            'Sheikhupura': 'sheikhupura',
+            'Thatta': 'thatta',
+            'Mithi': 'mithi'
+        };
+        
+        // Get mapped name or use city name converted to lowercase
+        const baseName = cityMap[cityName] || cityName.toLowerCase().replace(/\s+/g, '');
+        
+        // Try different filename patterns
+        const possibleFilenames = [
+            `${baseName}.png`,
+            `${cityName.toLowerCase().replace(/\s+/g, '')}.png`,
+            `${cityName.toLowerCase().replace(/\s+/g, '_')}.png`,
+            `${baseName}_city.png`
+        ];
+        
+        return possibleFilenames[0]; // Return first pattern
+    }
+
     // Function to show city preview with image
     function showCityPreview(cityName, type) {
         const container = document.getElementById('cityPreviewContainer');
@@ -759,8 +802,9 @@
             tag: 'City'
         };
 
-        // Create city image URL - assuming images are in "images/cities/" folder
-        const imageUrl = `images/cities/${cityName.toLowerCase().replace(/\s+/g, '_')}.png`;
+        // Create city image URL - looking in the "sample/" folder
+        const imageFilename = getCityImageFilename(cityName);
+        const imageUrl = `sample/${imageFilename}`;
         
         // Create preview HTML
         const previewHTML = `
