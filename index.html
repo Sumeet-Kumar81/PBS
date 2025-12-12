@@ -4,26 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pakistan Bus Services - Home</title>
+    
+    <link rel="icon" type="image/png" href="sample/logo.png">
+
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        /* General Reset and Font */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f4f9;
+            /* Background Logo Logic */
+            background-image: url('sample/logo.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 50%; /* Adjusts size of logo in background */
+            /* Adds a slight tint over the background logo to keep text readable */
+            position: relative;
+        }
+
+        /* Overlay to fade the background logo slightly */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; 
+            left: 0;
+            width: 100%; 
+            height: 100%; 
+            background: rgba(255, 255, 255, 0.85); /* White overlay with transparency */
+            z-index: -1;
+        }
+
+        /* The Main Container Card */
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border-top: 5px solid #0070f3; /* Brand color accent */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* Button Styling */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .btn {
-            display: inline-block;
-            margin: 20px;
-            padding: 15px 30px;
+            display: block;
+            padding: 15px;
             background-color: #0070f3;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
-            font-size: 1.2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 112, 243, 0.2);
         }
-        .btn:hover { background-color: #0051a2; }
+
+        .btn:hover {
+            background-color: #0051a2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 112, 243, 0.3);
+        }
+
+        /* Optional: Make the Admin button a slightly different style */
+        .btn.admin {
+            background-color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .btn.admin:hover {
+            background-color: #000;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Mobile Responsiveness */
+        @media (min-width: 600px) {
+            .btn-container {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .btn {
+                min-width: 180px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to Pakistan Bus Services</h1>
-    <p>Please select your portal:</p>
-    
-    <a href="customer_portal.html" class="btn">Customer Login</a>
-    <a href="admin_portal.html" class="btn">Admin Login</a>
+
+    <div class="container">
+        <h1>Pakistan Bus Services</h1>
+        <p>Welcome! Please select your portal to continue.</p>
+        
+        <div class="btn-container">
+            <a href="customer_portal.html" class="btn">Customer Login</a>
+            <a href="admin_portal.html" class="btn admin">Admin Login</a>
+        </div>
+    </div>
+
 </body>
 </html>
